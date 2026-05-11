@@ -5,7 +5,7 @@ public interface MarketDataIterator {
     MarketData next();
 }
 
-public interface MarketDataCollection {
+interface MarketDataCollection {
     MarketDataIterator createIterator();
 }
 
