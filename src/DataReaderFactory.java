@@ -14,7 +14,7 @@ class JsonReaderFactory extends DataReaderFactory {
 }
 
 // Concrete Creator 2
-class DatabaseReaderFactory extends DataReaderFactory {
+class TabularReaderFactory extends DataReaderFactory {
     @Override
     public MarketDataReader createReader() {
         // Tabular veride hisse sembolü varsayılan olarak AAPL kabul ediliyor
