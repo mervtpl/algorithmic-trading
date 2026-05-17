@@ -2,7 +2,8 @@ import java.util.List;
 
 public interface MarketDataIterator {
     boolean hasNext();
-    MarketData next();
+     void  next();
+     MarketData Current();
 }
 
 interface MarketDataCollection {
@@ -24,7 +25,7 @@ class StandardMarketDataCollection implements MarketDataCollection {
 
 class StandardMarketDataIterator implements MarketDataIterator {
     private List<MarketData> dataList;
-    private int position = 0;
+    private int index = 0;
 
     public StandardMarketDataIterator(List<MarketData> dataList) {
         this.dataList = dataList;
@@ -32,11 +33,22 @@ class StandardMarketDataIterator implements MarketDataIterator {
 
     @Override
     public boolean hasNext() {
-        return position < dataList.size();
+        return index < dataList.size();
     }
 
     @Override
-    public MarketData next() {
-        return dataList.get(position++);
+    public void next() {
+        if(hasNext()){
+            index++;
+        }else{
+            System.out.println("End of data");
+        } 
     }
+
+    @Override
+    public MarketData Current() {
+       return dataList.get(index);
+    }
+
+
 }

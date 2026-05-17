@@ -26,7 +26,8 @@ abstract class TradingStrategy {
 
         MarketDataIterator iterator = dataCollection.createIterator();
         while (iterator.hasNext()) {
-            MarketData data = iterator.next();
+            MarketData data = iterator.Current();
+            iterator.next();
             currentPrice = data.getClose();
             priceHistory.add(currentPrice);
         }

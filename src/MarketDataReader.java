@@ -10,10 +10,10 @@ public interface MarketDataReader {
 }
 
 // --- Adaptee 1: External JSON API  ---
-class ExternalJsonAPI {
+class Json {
     private String filePath;
 
-    public ExternalJsonAPI(String filePath) {
+    public Json(String filePath) {
         this.filePath = filePath;
     }
 
@@ -36,15 +36,15 @@ class ExternalJsonAPI {
     }
 }
 
-// --- Adaptee 2: Legacy Database (Tabular) ---
-class LegacyDatabase {
+// --- Adaptee 2: CSV (Tabular) ---
+class Tabular {
     private String filePath;
 
-    public LegacyDatabase(String filePath) {
+    public Tabular(String filePath) {
         this.filePath = filePath;
     }
 
-    public Object[][] executeQuery(String query) {
+    public Object[][] fetchTabularData() {
         try {
             java.io.File file = new java.io.File(filePath);
             if (!file.exists()) {
@@ -52,7 +52,7 @@ class LegacyDatabase {
                 file = new java.io.File(alternativePath);
             }
             
-            System.out.println("[Legacy DB] Executing query: " + query + " (Reading from: " + file.getAbsolutePath() + ")");
+            System.out.println("[Tabular] Reading data from: " + file.getAbsolutePath());
             List<String> lines = Files.readAllLines(file.toPath());
             
             // İlk satır başlık (header) olduğu için atlıyoruz, o yüzden size - 1
@@ -82,15 +82,15 @@ class LegacyDatabase {
 
 // --- Adapter 1: JSON Adapter ---
 class JsonDataAdapter implements MarketDataReader {
-    private ExternalJsonAPI jsonApi;
+    private Json json;
 
-    public JsonDataAdapter(ExternalJsonAPI jsonApi) {
-        this.jsonApi = jsonApi;
+    public JsonDataAdapter(Json json) {
+        this.json = json;
     }
 
     @Override
     public MarketDataCollection readData() {
-        String rawJson = jsonApi.fetchRawJson();
+        String rawJson = json.fetchRawJson();
         System.out.println("[Adapter] Converting JSON string to MarketData format...");
         
         // JSON Parsing simulasyonu
@@ -101,20 +101,20 @@ class JsonDataAdapter implements MarketDataReader {
     }
 }
 
-// --- Adapter 2: Database Adapter ---
-class DatabaseDataAdapter implements MarketDataReader {
-    private LegacyDatabase database;
+// --- Adapter 2: Table Adapter ---
+class TabularDataAdapter implements MarketDataReader {
+    private Tabular table;
     private String defaultSymbol; // Tabular datada sembol olmadigi icin bir varsayilan deger tutulabilir
 
-    public DatabaseDataAdapter(LegacyDatabase database, String defaultSymbol) {
-        this.database = database;
+    public TabularDataAdapter(Tabular table, String defaultSymbol) {
+        this.table = table;
         this.defaultSymbol = defaultSymbol;
     }
 
     @Override
     public MarketDataCollection readData() {
-        Object[][] rawData = database.executeQuery("SELECT * FROM market_history");
-        System.out.println("[Adapter] Converting Tabular DB data to MarketData format...");
+        Object[][] rawData = table.fetchTabularData();
+        System.out.println("Converting Tabular DB data to MarketData format...");
         
         List<MarketData> list = new ArrayList<>();
         for (Object[] row : rawData) {
@@ -143,13 +143,14 @@ class CompositeMarketDataReader implements MarketDataReader {
     @Override
     public MarketDataCollection readData() {
         List<MarketData> allData = new ArrayList<>();
-        System.out.println("[Composite] Birden fazla kaynaktan (JSON, DB vb.) veri toplaniyor...");
+        System.out.println("Collecting data from different sources...");
         
         for (MarketDataReader reader : readers) {
             MarketDataCollection collection = reader.readData();
             MarketDataIterator iterator = collection.createIterator();
             while (iterator.hasNext()) {
-                allData.add(iterator.next());
+                allData.add(iterator.Current());
+                iterator.next();
             }
         }
         

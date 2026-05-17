@@ -9,7 +9,7 @@ class JsonReaderFactory extends DataReaderFactory {
     @Override
     public MarketDataReader createReader() {
         // Dosya yolu Singleton'dan gelebilir, şimdilik statik veriyoruz
-        return new JsonDataAdapter(new ExternalJsonAPI("src/market_data.json"));
+        return new JsonDataAdapter(new Json("src/market_data.json"));
     }
 }
 
@@ -18,6 +18,6 @@ class DatabaseReaderFactory extends DataReaderFactory {
     @Override
     public MarketDataReader createReader() {
         // Tabular veride hisse sembolü varsayılan olarak AAPL kabul ediliyor
-        return new DatabaseDataAdapter(new LegacyDatabase("src/market_data.csv"), "AAPL");
+        return new TabularDataAdapter(new Tabular("src/market_data.csv"), "AAPL");
     }
 }
