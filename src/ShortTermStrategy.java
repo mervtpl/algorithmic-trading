@@ -1,5 +1,4 @@
-
-class ShortTermStrategy extends TradingStrategy {
+public class ShortTermStrategy extends TradingStrategy {
 
     public ShortTermStrategy(String symbol, Broker broker, TradeManager manager) {
         this.symbol = symbol;
@@ -22,9 +21,11 @@ class ShortTermStrategy extends TradingStrategy {
 
    @Override
     protected void calculateRisk(){
-       System.out.println("Checking short-term tight risk limits");
+       System.out.println("Checking short-term tight risk limits...");
+       RiskReportVisitor riskReport = new RiskReportVisitor();
+       broker.acceptVisitor(riskReport);
+       System.out.println("Risk Hesaplamasi Tamamlandi. Toplam Varlik: $" + riskReport.getTotalValue());
    }
-
 
     protected double calculateSMA(int period){
         if(priceHistory.isEmpty()) {
@@ -39,4 +40,3 @@ class ShortTermStrategy extends TradingStrategy {
         return sum/limit;
     }
 }
-

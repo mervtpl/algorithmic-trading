@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class TradingStrategy {
+public abstract class TradingStrategy {
 
     protected String symbol;
     protected double currentPrice;
@@ -24,12 +24,23 @@ abstract class TradingStrategy {
         System.out.println("Fetching market data for "+symbol+"...");
         priceHistory.clear();
 
+        MarketStream marketStream = new MarketStream();
+        marketStream.attach(new ChartDashboard());
+        boolean first = true;
+
         MarketDataIterator iterator = dataCollection.createIterator();
         while (iterator.hasNext()) {
             MarketData data = iterator.Current();
             iterator.next();
             currentPrice = data.getClose();
             priceHistory.add(currentPrice);
+
+            if (first) {
+                marketStream.attach(new ProfitLossCalculator(currentPrice, 0.05));
+                first = false;
+            }
+
+            marketStream.pushNewPrice(data);
         }
     }
     protected void executeTrade(String decision) {

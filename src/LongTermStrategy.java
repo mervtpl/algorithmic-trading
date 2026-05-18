@@ -1,5 +1,4 @@
-
-class LongTermStrategy extends TradingStrategy {
+public class LongTermStrategy extends TradingStrategy {
 
     public LongTermStrategy(String symbol, Broker broker, TradeManager manager) {
         this.symbol = symbol;
@@ -24,6 +23,9 @@ class LongTermStrategy extends TradingStrategy {
     @Override
     protected void calculateRisk() {
         System.out.println("Checking long-term wide risk limits...");
+        RiskReportVisitor riskReport = new RiskReportVisitor();
+        broker.acceptVisitor(riskReport);
+        System.out.println("Risk Hesaplamasi Tamamlandi. Toplam Varlik: $" + riskReport.getTotalValue());
     }
 
     private double calculateSMA(int period) {

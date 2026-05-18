@@ -1,4 +1,4 @@
-class TradeCommand implements Command {
+public class TradeCommand implements Command {
     private Broker broker;
     private String type;
     private String symbol;
