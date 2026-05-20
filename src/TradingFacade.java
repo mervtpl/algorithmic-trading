@@ -24,7 +24,11 @@ public class TradingFacade {
 
     broker = new Broker();
     tradeManager = new TradeManager();
-    factory = new TabularReaderFactory();
+    if (config.getDataFilePath().endsWith(".json")) {
+        factory = new JsonReaderFactory();
+    } else {
+        factory = new TabularReaderFactory();
+    }
     reader = factory.createReader();
 
     // Strategy seçimi Singleton üzerinden yapılıyor

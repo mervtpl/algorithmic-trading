@@ -93,11 +93,63 @@ class JsonDataAdapter implements MarketDataReader {
         String rawJson = json.fetchRawJson();
         System.out.println("[Adapter] Converting JSON string to MarketData format...");
         
-        // JSON Parsing simulasyonu
         List<MarketData> list = new ArrayList<>();
-        list.add(new MarketData("AAPL", 180.50, 183.50, 179.20, 182.50, 12500, "2025-04-23T00:00:00Z"));
+        try {
+            // Normalleştirme: Süslü parantezleri ve virgülleri satır satır bölünebilecek şekilde düzenleyelim
+            String normalized = rawJson.replace("{", "\n{\n")
+                                       .replace("}", "\n}\n")
+                                       .replace(",", ",\n");
+            String[] lines = normalized.split("\n");
+            
+            String symbol = "";
+            double open = 0, high = 0, low = 0, close = 0;
+            int volume = 0;
+            String timestamp = "";
+            
+            for (String line : lines) {
+                line = line.trim();
+                if (line.startsWith("\"symbol\"")) {
+                    symbol = extractValue(line);
+                } else if (line.startsWith("\"open\"")) {
+                    open = Double.parseDouble(extractValue(line));
+                } else if (line.startsWith("\"high\"")) {
+                    high = Double.parseDouble(extractValue(line));
+                } else if (line.startsWith("\"low\"")) {
+                    low = Double.parseDouble(extractValue(line));
+                } else if (line.startsWith("\"close\"")) {
+                    close = Double.parseDouble(extractValue(line));
+                } else if (line.startsWith("\"volume\"")) {
+                    volume = Integer.parseInt(extractValue(line));
+                } else if (line.startsWith("\"timestamp\"")) {
+                    timestamp = extractValue(line);
+                } else if (line.startsWith("}")) {
+                    if (!symbol.isEmpty()) {
+                        list.add(new MarketData(symbol, open, high, low, close, volume, timestamp));
+                        // Reset fields for the next object
+                        symbol = ""; open = 0.0; high = 0.0; low = 0.0; close = 0.0; volume = 0; timestamp = "";
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("JSON line-by-line parsing error: " + e.getMessage());
+            // Fallback in case of failure
+            list.add(new MarketData("AAPL", 180.50, 183.50, 179.20, 182.50, 12500, "2025-04-23T00:00:00Z"));
+        }
         
         return new StandardMarketDataCollection(list);
+    }
+
+    private String extractValue(String line) {
+        int colonIndex = line.indexOf(":");
+        if (colonIndex == -1) return "";
+        String val = line.substring(colonIndex + 1).trim();
+        if (val.endsWith(",")) {
+            val = val.substring(0, val.length() - 1).trim();
+        }
+        if (val.startsWith("\"") && val.endsWith("\"")) {
+            val = val.substring(1, val.length() - 1);
+        }
+        return val;
     }
 }
 
@@ -132,28 +184,3 @@ class TabularDataAdapter implements MarketDataReader {
     }
 }
 
-// --- Pattern 4: Composite Adapter  ---
-class CompositeMarketDataReader implements MarketDataReader {
-    private List<MarketDataReader> readers = new ArrayList<>();
-
-    public void addReader(MarketDataReader reader) {
-        readers.add(reader);
-    }
-
-    @Override
-    public MarketDataCollection readData() {
-        List<MarketData> allData = new ArrayList<>();
-        System.out.println("Collecting data from different sources...");
-        
-        for (MarketDataReader reader : readers) {
-            MarketDataCollection collection = reader.readData();
-            MarketDataIterator iterator = collection.createIterator();
-            while (iterator.hasNext()) {
-                allData.add(iterator.Current());
-                iterator.next();
-            }
-        }
-        
-        return new StandardMarketDataCollection(allData);
-    }
-}
