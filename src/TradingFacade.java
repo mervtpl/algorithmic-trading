@@ -13,7 +13,6 @@ public class TradingFacade {
     private TradingStrategy strategy;
   
     public TradingFacade() {
-        // Observerlar ekleniyor
         marketStream = new MarketStream();
         marketStream.attach(new ChartDashboard());
         marketStream.attach(new ProfitLossCalculator(180.0,0.05));
@@ -21,12 +20,8 @@ public class TradingFacade {
         // Sistemler oluşturuluyor
         broker = new Broker();
         tradeManager = new TradeManager();
-
-        // Factory ile reader oluşturuluyor
         factory = new TabularReaderFactory();
         reader = factory.createReader();
-
-        // Strategy oluşturuluyor
         strategy = new ShortTermStrategy("AAPL", broker, tradeManager);
 
         // Observer bağlantısı kuruluyor
@@ -43,12 +38,10 @@ public class TradingFacade {
         strategy.check(dataCollection);
         System.out.println( " END OF DAY TAX REPORT ");
 
-        // Visitor pattern
         TaxCalculatorVisitor taxVisitor = new TaxCalculatorVisitor();
         broker.acceptVisitor(taxVisitor);
 
         System.out.println(" UNDO LAST TRANSACTION ");
-        // Command undo
         tradeManager.Undo(1);
     }
 }
