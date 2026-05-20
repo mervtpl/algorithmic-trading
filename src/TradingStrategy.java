@@ -1,6 +1,24 @@
 import java.util.ArrayList;
 import java.util.List;
 
+
+interface Indicator {
+    double calculate(List<Double> priceHistory, int period);
+}
+
+class SMAIndicator implements Indicator {
+    @Override
+    public double calculate(List<Double> priceHistory, int period) {
+        if (priceHistory.isEmpty()) return 0.0;
+        int limit = Math.min(period, priceHistory.size());
+        double sum = 0.0;
+        for (int i = priceHistory.size() - limit; i < priceHistory.size(); i++) {
+            sum += priceHistory.get(i);
+        }
+        return sum / limit;
+    }
+}
+
 public abstract class TradingStrategy {
 
     protected String symbol;
@@ -9,6 +27,7 @@ public abstract class TradingStrategy {
     protected TradeManager tradeManager;
     protected List<Double> priceHistory = new ArrayList<>();
     protected MarketStream marketStream;
+    protected Indicator indicator;
 
     public void setMarketStream(MarketStream stream){
         this.marketStream=stream;
@@ -18,25 +37,23 @@ public abstract class TradingStrategy {
         return symbol;
     }
 
+
     public void check(MarketDataCollection dataCollection){
         fetchData(dataCollection);
         String decision = analyzeIndicators();
-        calculateRisk();
+        decision = calculateRisk(decision);
         executeTrade(decision);
     }
 
     protected void fetchData(MarketDataCollection dataCollection){
         System.out.println("Fetching market data for "+symbol+"...");
         priceHistory.clear();
-
         MarketDataIterator iterator = dataCollection.createIterator();
         while (iterator.hasNext()) {
-            MarketData data = iterator.Current();
+            MarketData data = iterator.current();
             iterator.next();
-
             currentPrice = data.getClose();
             priceHistory.add(currentPrice);
-
             if (marketStream != null) {
                 marketStream.pushNewPrice(data);
             }
@@ -44,57 +61,57 @@ public abstract class TradingStrategy {
     }
 
     protected void executeTrade(String decision) {
+        if(decision.equals("HOLD")) {
+            System.out.println("Trade conditions not met. Holding position.");
+            return;
+        }
         System.out.println("Trade conditions evaluated. Executing " + decision + " Order...");
         Command command = new TradeCommand(broker, decision, symbol, currentPrice);
-        tradeManager.Compute(command);
+        tradeManager.compute(command);
     }
+
     protected abstract String analyzeIndicators();
-    protected abstract void calculateRisk();
+    protected abstract String calculateRisk(String currentDecision);
 }
 
- class ShortTermStrategy extends TradingStrategy {
+class ShortTermStrategy extends TradingStrategy {
 
-     public ShortTermStrategy(String symbol, Broker broker, TradeManager manager) {
-         this.symbol = symbol;
-         this.broker = broker;
-         this.tradeManager = manager;
-     }
+    public ShortTermStrategy(String symbol, Broker broker, TradeManager manager) {
+        this.symbol = symbol;
+        this.broker = broker;
+        this.tradeManager = manager;
+        this.indicator = new SMAIndicator();
+    }
 
-     @Override
-     protected String analyzeIndicators() {
-         int period = 200;
-         double sma = calculateSMA(period);
-         System.out.println("Short-Term SMA (" + period + "): " + String.format("%.2f", sma) + " | Current Price: " + currentPrice);
+    @Override
+    protected String analyzeIndicators() {
+        int period = 200;
+        double sma = indicator.calculate(priceHistory, period);
+        double threshold = SystemConfiguration.getInstance().getThresholdValue();
 
-         if (currentPrice > sma) {
-             return "BUY";
-         } else {
-             return "SELL";
-         }
-     }
+        System.out.println("Short-Term SMA (" + period + " mins): " + String.format("%.2f", sma) + " | Threshold: " + threshold + " | Current: " + currentPrice);
 
-     @Override
-     protected void calculateRisk() {
-         System.out.println("Checking short-term tight risk limits...");
-         double totalValue = broker.calculateTotalValueAndPrintReport();
-         System.out.println("Risk calculation completed. Total Assets: $" + totalValue);
-     }
+        if (currentPrice > (sma + threshold)) return "BUY";
+        else return "SELL";
+    }
 
-     protected double calculateSMA(int period) {
-         if (priceHistory.isEmpty()) {
-             return 0.0;
-         }
-         int limit = Math.min(period, priceHistory.size());
-         double sum = 0.0;
+    @Override
+    protected String calculateRisk(String currentDecision) {
+        double maxLossPercent = SystemConfiguration.getInstance().getRiskLimit() / 100.0;
+        double entryPrice = SystemConfiguration.getInstance().getEntryPrice();
+        System.out.println("Checking short-term risk limit (Max Loss: %" + SystemConfiguration.getInstance().getRiskLimit() + ")...");
 
-         for (int i = priceHistory.size() - limit; i < priceHistory.size(); i++) {
-             sum += priceHistory.get(i);
-         }
-         return sum / limit;
-     }
- }
-
-
+        double lossPercent = (entryPrice - currentPrice) / entryPrice;
+        if (lossPercent >= maxLossPercent) {
+            System.out.println("!!! RISK NOTIFICATION (Level: HIGH): Position loss %" +
+                    String.format("%.2f", lossPercent * 100) +
+                    " exceeds max limit %" + SystemConfiguration.getInstance().getRiskLimit() +
+                    ". Forcing SELL order. !!!");
+            return "SELL";
+        }
+        return currentDecision;
+    }
+}
 
 class LongTermStrategy extends TradingStrategy {
 
@@ -102,41 +119,35 @@ class LongTermStrategy extends TradingStrategy {
         this.symbol = symbol;
         this.broker = broker;
         this.tradeManager = manager;
+        this.indicator = new SMAIndicator();
     }
 
     @Override
     protected String analyzeIndicators() {
-
         int period = 200;
-        double sma = calculateSMA(period);
-        System.out.println("Long-Term SMA (" + period + "): " + String.format("%.2f", sma) + " | Current Price: " + currentPrice);
+        double sma = indicator.calculate(priceHistory, period);
+        double threshold = SystemConfiguration.getInstance().getThresholdValue();
 
-        if (currentPrice > sma) {
-            return "BUY";
-        } else {
-            return "SELL";
-        }
+        System.out.println("Long-Term SMA (" + period + " days): " + String.format("%.2f", sma) + " | Threshold: " + threshold + " | Current: " + currentPrice);
+
+        if (currentPrice > (sma + threshold)) return "BUY";
+        else return "SELL";
     }
 
     @Override
-    protected void calculateRisk() {
-        System.out.println("Checking long-term wide risk limits...");
-        double totalValue = broker.calculateTotalValueAndPrintReport();
-        System.out.println("Risk calculation completed. Total Assets: $" + totalValue);
-    }
+    protected String calculateRisk(String currentDecision) {
+        double maxLossPercent = SystemConfiguration.getInstance().getRiskLimit() / 100.0;
+        double entryPrice = SystemConfiguration.getInstance().getEntryPrice();
+        System.out.println("Checking long-term risk limit (Max Loss: %" + SystemConfiguration.getInstance().getRiskLimit() + ")...");
 
-    private double calculateSMA(int period) {
-        if (priceHistory.isEmpty()){
-            return 0.0;
+        double lossPercent = (entryPrice - currentPrice) / entryPrice;
+        if (lossPercent >= maxLossPercent) {
+            System.out.println("!!! RISK NOTIFICATION (Level: HIGH): Position loss %" +
+                    String.format("%.2f", lossPercent * 100) +
+                    " exceeds max limit %" + SystemConfiguration.getInstance().getRiskLimit() +
+                    ". Forcing SELL order. !!!");
+            return "SELL";
         }
-
-        int limit = Math.min(period, priceHistory.size());
-        double sum = 0.0;
-
-        for (int i = priceHistory.size() - limit; i < priceHistory.size(); i++) {
-            sum += priceHistory.get(i);
-        }
-        return sum / limit;
+        return currentDecision;
     }
 }
-
