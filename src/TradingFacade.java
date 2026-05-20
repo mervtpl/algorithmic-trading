@@ -1,7 +1,7 @@
 public class TradingFacade {
-    // Observer sistemi
+    // Observer system
     private MarketStream marketStream;
-    // Trade işlemleri
+    // Trade operations
     private Broker broker;
     // Command manager
     private TradeManager tradeManager;
@@ -17,7 +17,7 @@ public class TradingFacade {
     // Singleton configuration object
     SystemConfiguration config = SystemConfiguration.getInstance();
 
-    // Observerlar ekleniyor
+    // Attaching observers
     marketStream = new MarketStream();
     marketStream.attach(new ChartDashboard());
     marketStream.attach(   new ProfitLossCalculator(180.0,config.getRiskLimit() / 100.0) );
@@ -31,28 +31,27 @@ public class TradingFacade {
     }
     reader = factory.createReader();
 
-    // Strategy seçimi Singleton üzerinden yapılıyor
+    // Strategy selection via Singleton
     if(config.getActiveStrategy().equals("SHORT_TERM")) {
         strategy = new ShortTermStrategy("AAPL",broker,tradeManager);
     } else {
         strategy = new LongTermStrategy("AAPL",broker,tradeManager);
     }
 
-    // Observer bağlantısı kuruluyor
+    // Connecting observer to strategy
     strategy.setMarketStream(marketStream);
 }
     // Facade method
     public void startTrading() {
         System.out.println(" STOCK TRADING SYSTEM STARTING ");
 
-        // Veri okunuyor
+        // Reading data
         MarketDataCollection dataCollection = reader.readData();
 
-        // Strategy çalıştırılıyor
+        // Running strategy
         strategy.check(dataCollection);
         System.out.println( " END OF DAY TAX REPORT ");
-        TaxCalculatorVisitor taxVisitor = new TaxCalculatorVisitor();
-        broker.acceptVisitor(taxVisitor);
+        broker.printTaxReport();
 
         System.out.println(" UNDO LAST TRANSACTION ");
         tradeManager.Undo(1);

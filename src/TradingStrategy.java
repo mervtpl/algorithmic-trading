@@ -76,9 +76,8 @@ public abstract class TradingStrategy {
      @Override
      protected void calculateRisk() {
          System.out.println("Checking short-term tight risk limits...");
-         RiskReportVisitor riskReport = new RiskReportVisitor();
-         broker.acceptVisitor(riskReport);
-         System.out.println("Risk Hesaplamasi Tamamlandi. Toplam Varlik: $" + riskReport.getTotalValue());
+         double totalValue = broker.calculateTotalValueAndPrintReport();
+         System.out.println("Risk calculation completed. Total Assets: $" + totalValue);
      }
 
      protected double calculateSMA(int period) {
@@ -122,9 +121,8 @@ class LongTermStrategy extends TradingStrategy {
     @Override
     protected void calculateRisk() {
         System.out.println("Checking long-term wide risk limits...");
-        RiskReportVisitor riskReport = new RiskReportVisitor();
-        broker.acceptVisitor(riskReport);
-        System.out.println("Risk Hesaplamasi Tamamlandi. Toplam Varlik: $" + riskReport.getTotalValue());
+        double totalValue = broker.calculateTotalValueAndPrintReport();
+        System.out.println("Risk calculation completed. Total Assets: $" + totalValue);
     }
 
     private double calculateSMA(int period) {

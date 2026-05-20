@@ -30,10 +30,49 @@ public class Broker {
         System.out.println("Current balance: "+cashAsset.getAmount());
     }
 
-    public void acceptVisitor(PortfolioVisitor visitor) {
-        cashAsset.accept(visitor);
+    public double calculateTotalValueAndPrintReport() {
+        double total = cashAsset.getAmount();
+        System.out.println("[Risk Report] Cash Asset Added: $" + cashAsset.getAmount());
         for (StockAsset stock : stockAssets) {
-            stock.accept(visitor);
+            double value = stock.getValue();
+            total += value;
+            System.out.println("[Risk Report] Stock Asset Added: " + stock.getSymbol() + " | Total Value: $" + value);
+        }
+        return total;
+    }
+
+    public void printTaxReport() {
+        System.out.println("[Tax Calculator] Cash tax deduction: $0");
+        for (StockAsset stock : stockAssets) {
+            double tax = stock.getValue() * 0.02;
+            System.out.println("[Tax Calculator] Tax calculated for " + stock.getSymbol() + ": $" + tax);
         }
     }
+}
+
+class StockAsset {
+    private String symbol;
+    private int quantity;
+    private double currentPrice;
+
+    public StockAsset(String symbol, int quantity, double currentPrice) {
+        this.symbol = symbol;
+        this.quantity = quantity;
+        this.currentPrice = currentPrice;
+    }
+
+    public double getValue() { return quantity * currentPrice; }
+    public String getSymbol() { return symbol; }
+}
+
+class CashAsset {
+    private double amount;
+
+    public CashAsset(double amount) {
+        this.amount = amount;
+    }
+
+    public double getAmount() { return amount; }
+    
+    public void setAmount(double amount) { this.amount = amount; }
 }

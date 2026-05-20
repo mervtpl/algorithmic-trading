@@ -5,7 +5,7 @@ public interface PriceObserver {
 class ChartDashboard implements PriceObserver {
     @Override
     public void update(MarketData data) {
-        System.out.println("[Chart Dashboard] Grafik Guncellendi -> " + data.getSymbol() + " Yeni Fiyat: $" + data.getClose() + " (Hacim: " + data.getVolume() + ")");
+        System.out.println("[Chart Dashboard] Chart Updated -> " + data.getSymbol() + " New Price: $" + data.getClose() + " (Volume: " + data.getVolume() + ")");
     }
 }
 
@@ -23,10 +23,10 @@ class ProfitLossCalculator implements PriceObserver {
         double currentPrice = data.getClose();
         double pnlPercentage = ((currentPrice - entryPrice) / entryPrice);
         
-        System.out.println("[Profit/Loss Calculator] Anlik Kar/Zarar: %" + String.format("%.2f", pnlPercentage * 100));
+        System.out.println("[Profit/Loss Calculator] Current P&L: %" + String.format("%.2f", pnlPercentage * 100));
 
         if (pnlPercentage <= -maxLossThreshold) {
-            System.out.println("!!! RISK UYARISI: Maksimum zarar limiti (%" + (maxLossThreshold * 100) + ") asildi! (Seviye: YUKSEK). Lütfen SELL emri ile pozisyonu kapatin. !!!");
+            System.out.println("!!! RISK WARNING: Maximum loss limit (%" + (maxLossThreshold * 100) + ") exceeded! (Level: HIGH). Please close the position with a SELL order. !!!");
         }
     }
 }

@@ -21,7 +21,7 @@ public class MarketStream {
 
     public void pushNewPrice(MarketData data) {
         this.currentData = data;
-        System.out.println("\n[MarketStream] Yeni fiyat verisi sisteme aktarildi: " + data.getSymbol() + " - $" + data.getClose());
+        System.out.println("\n[MarketStream] New price data pushed to the system: " + data.getSymbol() + " - $" + data.getClose());
         notifyObservers();
     }
 }
