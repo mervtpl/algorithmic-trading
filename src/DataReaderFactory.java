@@ -8,8 +8,8 @@ public abstract class DataReaderFactory {
 class JsonReaderFactory extends DataReaderFactory {
     @Override
     public MarketDataReader createReader() {
-        // Dosya yolu Singleton'dan gelebilir, şimdilik statik veriyoruz
-        return new JsonDataAdapter(new Json("src/market_data.json"));
+        // Dosya yolu Singleton'dan geliyor
+        return new JsonDataAdapter(new Json(SystemConfiguration.getInstance().getDataFilePath()));
     }
 }
 
@@ -17,7 +17,7 @@ class JsonReaderFactory extends DataReaderFactory {
 class TabularReaderFactory extends DataReaderFactory {
     @Override
     public MarketDataReader createReader() {
-        // Tabular veride hisse sembolü varsayılan olarak AAPL kabul ediliyor
-        return new TabularDataAdapter(new Tabular("src/market_data.csv"), "AAPL");
+        // Dosya yolu Singleton'dan geliyor, Tabular veride hisse sembolü varsayılan olarak AAPL kabul ediliyor
+        return new TabularDataAdapter(new Tabular(SystemConfiguration.getInstance().getDataFilePath()), "AAPL");
     }
 }
