@@ -1,9 +1,13 @@
 public class Main {
-    public static void main(String[] args) {
-        // Facade oluşturuluyor
-        TradingFacade facade = new TradingFacade();
 
-        // Tüm sistem facade üzerinden çalışıyor
+    public static void main(String[] args) {
+
+        SystemConfiguration config =SystemConfiguration.getInstance();
+
+        config.setRiskLimit(4.0);
+        
+        config.setActiveStrategy("LONG_TERM");
+        TradingFacade facade = new TradingFacade();
         facade.startTrading();
     }
 }
