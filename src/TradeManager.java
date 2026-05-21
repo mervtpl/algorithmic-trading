@@ -100,16 +100,6 @@ class Broker {
         System.out.println("Current balance: $" + String.format("%.2f", cashAsset.getAmount()));
     }
 
-    public double calculateTotalValueAndPrintReport() {
-        double total = cashAsset.getAmount();
-        System.out.println("[Risk Report] Cash Asset Added: $" + cashAsset.getAmount());
-        for (StockAsset stock : stockAssets) {
-            double value = stock.getValue();
-            total += value;
-            System.out.println("[Risk Report] Stock Asset Added: " + stock.getSymbol() + " | Total Value: $" + value);
-        }
-        return total;
-    }
 
     public void printTaxReport() {
         System.out.println("[Tax Calculator] Cash tax deduction: $0.00");

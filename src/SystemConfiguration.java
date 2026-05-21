@@ -33,7 +33,6 @@ public class SystemConfiguration {
     public void setEntryPrice(double entryPrice) { this.entryPrice = entryPrice; }
     public String getDataFilePath() { return dataFilePath; }
     public void setDataFilePath(String dataFilePath) { this.dataFilePath = dataFilePath; }
-    public String getOutputDirectory() { return outputDirectory; }
     public void setOutputDirectory(String outputDirectory) { this.outputDirectory = outputDirectory; }
     public String getActiveStrategy() { return activeStrategy; }
     public void setActiveStrategy(String activeStrategy) { this.activeStrategy = activeStrategy; }
