@@ -96,8 +96,8 @@ class Broker {
                 }
                 break;
         }
-        System.out.println("Action executed: "+type+" "+symbol+" at "+price);
-        System.out.println("Current balance: "+cashAsset.getAmount());
+        System.out.println("Action executed: " + type + " " + symbol + " at $" + String.format("%.2f", price));
+        System.out.println("Current balance: $" + String.format("%.2f", cashAsset.getAmount()));
     }
 
     public double calculateTotalValueAndPrintReport() {
@@ -112,10 +112,10 @@ class Broker {
     }
 
     public void printTaxReport() {
-        System.out.println("[Tax Calculator] Cash tax deduction: $0");
+        System.out.println("[Tax Calculator] Cash tax deduction: $0.00");
         for (StockAsset stock : stockAssets) {
             double tax = stock.getValue() * 0.02;
-            System.out.println("[Tax Calculator] Tax calculated for " + stock.getSymbol() + ": $" + tax);
+            System.out.println("[Tax Calculator] Tax calculated for " + stock.getSymbol() + ": $" + String.format("%.2f", tax));
         }
     }
 }

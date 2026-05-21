@@ -88,11 +88,16 @@ class ShortTermStrategy extends TradingStrategy {
 
     @Override
     protected String calculateRisk(String currentDecision) {
-        double maxRisk = SystemConfiguration.getInstance().getRiskLimit();
-        System.out.println("Checking short-term risk limit (Max Loss: %" + maxRisk + ")...");
+        double maxLossPercent = SystemConfiguration.getInstance().getRiskLimit() / 100.0;
+        double entryPrice = SystemConfiguration.getInstance().getEntryPrice();
+        System.out.println("Checking short-term risk limit (Max Loss: %" + SystemConfiguration.getInstance().getRiskLimit() + ")...");
 
-        if (currentDecision.equals("BUY") && currentPrice < 170.0) {
-            System.out.println("!!! RISK NOTIFICATION: Position loss exceeds limit. Forcing SELL order.");
+        double lossPercent = (entryPrice - currentPrice) / entryPrice;
+        if (lossPercent >= maxLossPercent) {
+            System.out.println("!!! RISK NOTIFICATION (Level: HIGH): Position loss %" +
+                    String.format("%.2f", lossPercent * 100) +
+                    " exceeds max limit %" + SystemConfiguration.getInstance().getRiskLimit() +
+                    ". Forcing SELL order. !!!");
             return "SELL";
         }
         return currentDecision;
@@ -122,11 +127,16 @@ class LongTermStrategy extends TradingStrategy {
 
     @Override
     protected String calculateRisk(String currentDecision) {
-        double maxRisk = SystemConfiguration.getInstance().getRiskLimit();
-        System.out.println("Checking long-term risk limit (Max Loss: %" + maxRisk + ")...");
+        double maxLossPercent = SystemConfiguration.getInstance().getRiskLimit() / 100.0;
+        double entryPrice = SystemConfiguration.getInstance().getEntryPrice();
+        System.out.println("Checking long-term risk limit (Max Loss: %" + SystemConfiguration.getInstance().getRiskLimit() + ")...");
 
-        if (currentDecision.equals("BUY") && currentPrice < 150.0) {
-            System.out.println("!!! RISK NOTIFICATION: High volatility detected. Forcing SELL order.");
+        double lossPercent = (entryPrice - currentPrice) / entryPrice;
+        if (lossPercent >= maxLossPercent) {
+            System.out.println("!!! RISK NOTIFICATION (Level: HIGH): Position loss %" +
+                    String.format("%.2f", lossPercent * 100) +
+                    " exceeds max limit %" + SystemConfiguration.getInstance().getRiskLimit() +
+                    ". Forcing SELL order. !!!");
             return "SELL";
         }
         return currentDecision;
